@@ -14,6 +14,7 @@ namespace location_server
 
         static void Main(string[] args)
         {
+            mPeople.Add("Billy", "Somewhere");
             runServer();
         }
 
@@ -43,13 +44,51 @@ namespace location_server
 
         static void doRequest(NetworkStream pListener)
         {
-            StreamWriter writer = new StreamWriter(pListener);
-            StreamReader reader = new StreamReader(pListener);
+            Console.WriteLine("Connection Established");
+            try
+            {
+                StreamWriter writer = new StreamWriter(pListener);
+                StreamReader reader = new StreamReader(pListener);
 
-            //string[] input = new string[2];
-            //input = reader.ReadToEnd().Split(' ');
+                string argument = reader.ReadToEnd();
+                string[] arguments = new string[2];
+                arguments = argument.Split(' ');
 
-            Console.WriteLine("it worked");
+                if(arguments.Length == 1)
+                {
+                    arguments[0] = arguments[0].Replace("\r\n", string.Empty);
+                }
+                else if(arguments.Length == 2)
+                {
+                    arguments[0] = arguments[0].Replace("\r\n", string.Empty);
+                    arguments[1] = arguments[1].Replace("\r\n", string.Empty);
+                }
+
+                // Take in the arguments, split them. Arguments 0 is the name, Arguments 1 is the location
+
+                if(arguments.Length == 1) //Request user location
+                {
+                    if(mPeople.ContainsKey(arguments[0])) //Person is found on the server
+                    {
+                        string location;
+                        mPeople.TryGetValue(arguments[0], out location);
+                        Console.WriteLine(arguments[0] + " is in " + location);
+                    }
+                    else
+                    {
+                        Console.WriteLine("ERROR: This user does not exist");
+                    }
+                }
+                if(arguments.Length == 2)
+                {
+
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("ERROR: Something Went Wrong!");
+            }
         }
     }
 }
