@@ -68,20 +68,26 @@ namespace location_server
 
                 if(arguments.Length == 1) //Request user location
                 {
-                    if(mPeople.ContainsKey(arguments[0])) //Person is found on the server
+                    if(mPeople.ContainsKey(arguments[0]))
                     {
-                        string location;
-                        mPeople.TryGetValue(arguments[0], out location);
-                        Console.WriteLine(arguments[0] + " is in " + location);
+                        Console.WriteLine(arguments[0] + " is in " + mPeople[arguments[0]]);
                     }
                     else
                     {
                         Console.WriteLine("ERROR: This user does not exist");
                     }
                 }
-                if(arguments.Length == 2)
+                else if(arguments.Length == 2) //Update location or add user
                 {
+                    if (mPeople.ContainsKey(arguments[0]))
+                    {
+                        mPeople[arguments[0]] = arguments[1];
+                        Console.WriteLine(arguments[0] + " is in " + mPeople[arguments[0]]);
+                    }
+                    else
+                    {
 
+                    }
                 }
 
             }
