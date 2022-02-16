@@ -52,7 +52,8 @@ namespace location_server
 
                 string argument = reader.ReadToEnd();
                 string[] arguments = new string[2];
-                arguments = argument.Split(' ');
+                char[] characters = {' ', '"' };
+                arguments = argument.Split(characters, 2);
 
                 if(arguments.Length == 1)
                 {
