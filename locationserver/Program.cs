@@ -31,6 +31,8 @@ namespace location_server
                 {
                     connection = listener.AcceptSocket();
                     socketStream = new NetworkStream(connection);
+                    socketStream.ReadTimeout = 1000;
+                    socketStream.WriteTimeout = 1000;
                     doRequest(socketStream);
                     socketStream.Close();
                     connection.Close();
@@ -71,7 +73,7 @@ namespace location_server
                 {
                     if(mPeople.ContainsKey(arguments[0]))
                     {
-                        writer.WriteLine(arguments[0] + " is in " + mPeople[arguments[0]]);
+                        writer.WriteLine(mPeople[arguments[0]]);
                         writer.Flush();
                     }
                     else
@@ -85,12 +87,13 @@ namespace location_server
                     if (mPeople.ContainsKey(arguments[0]))
                     {
                         mPeople[arguments[0]] = arguments[1];
-                        Console.WriteLine(arguments[0] + " is in " + mPeople[arguments[0]]);
+                        writer.WriteLine("OK\r\n");
+                        writer.Flush();
                     }
                     else
                     {
                         mPeople.Add(arguments[0], arguments[1]);
-                        writer.WriteLine();
+                        writer.WriteLine("OK\r\n");
                         writer.Flush();
                     }
                 }
