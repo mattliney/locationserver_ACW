@@ -50,7 +50,7 @@ namespace location_server
                 StreamWriter writer = new StreamWriter(pListener);
                 StreamReader reader = new StreamReader(pListener);
 
-                string argument = reader.ReadToEnd();
+                string argument = reader.ReadLine();
                 string[] arguments = new string[2];
                 char[] characters = {' ', '"' };
                 arguments = argument.Split(characters, 2);
@@ -94,7 +94,7 @@ namespace location_server
             }
             catch (Exception e)
             {
-                Console.WriteLine("ERROR: Something Went Wrong!");
+                Console.WriteLine(e.ToString());
             }
         }
     }
