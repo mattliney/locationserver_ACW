@@ -71,11 +71,13 @@ namespace location_server
                 {
                     if(mPeople.ContainsKey(arguments[0]))
                     {
-                        Console.WriteLine(arguments[0] + " is in " + mPeople[arguments[0]]);
+                        writer.WriteLine(arguments[0] + " is in " + mPeople[arguments[0]]);
+                        writer.Flush();
                     }
                     else
                     {
-                        Console.WriteLine("ERROR: This user does not exist");
+                        writer.WriteLine("ERROR: no entries found");
+                        writer.Flush();
                     }
                 }
                 else if(arguments.Length == 2) //Update location or add user
@@ -87,7 +89,9 @@ namespace location_server
                     }
                     else
                     {
-
+                        mPeople.Add(arguments[0], arguments[1]);
+                        writer.WriteLine();
+                        writer.Flush();
                     }
                 }
 
