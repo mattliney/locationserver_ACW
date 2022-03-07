@@ -12,6 +12,8 @@ namespace location_server
     {
         static Dictionary<string, string> mPeople = new Dictionary<string, string>();
         static string mCurrentProtocol = "whois";
+        static string mName;
+        static string mLocation;
 
         static void Main(string[] args)
         {
@@ -80,19 +82,19 @@ namespace location_server
 
                     if (arguments.Length == 1)
                     {
-                        arguments[0] = arguments[0].Replace("\r\n", string.Empty);
+                        mName = arguments[0].Replace("\r\n", string.Empty);
                     }
                     else if (arguments.Length == 2)
                     {
-                        arguments[0] = arguments[0].Replace("\r\n", string.Empty);
-                        arguments[1] = arguments[1].Replace("\r\n", string.Empty);
+                        mName = arguments[0].Replace("\r\n", string.Empty);
+                        mLocation = arguments[1].Replace("\r\n", string.Empty);
                     }
 
                     if (arguments.Length == 1)
                     {
-                        if (mPeople.ContainsKey(arguments[0]))
+                        if (mPeople.ContainsKey(mName))
                         {
-                            writer.WriteLine(mPeople[arguments[0]]);
+                            writer.WriteLine(mPeople[mName]);
                             writer.Flush();
                         }
                         else
@@ -103,19 +105,23 @@ namespace location_server
                     }
                     else if (arguments.Length == 2) 
                     {
-                        if (mPeople.ContainsKey(arguments[0]))
+                        if (mPeople.ContainsKey(mName))
                         {
-                            mPeople[arguments[0]] = arguments[1];
+                            mPeople[mName] = mLocation;
                             writer.WriteLine("OK\r\n");
                             writer.Flush();
                         }
                         else
                         {
-                            mPeople.Add(arguments[0], arguments[1]);
+                            mPeople.Add(mName, mLocation);
                             writer.WriteLine("OK\r\n");
                             writer.Flush();
                         }
                     }
+                }
+                else if(mCurrentProtocol == "HTTP/0.9")
+                {
+
                 }
 
             }
