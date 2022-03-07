@@ -11,6 +11,7 @@ namespace location_server
     class Program
     {
         static Dictionary<string, string> mPeople = new Dictionary<string, string>();
+        static string mCurrentProtocol = "whois";
 
         static void Main(string[] args)
         {
@@ -53,48 +54,67 @@ namespace location_server
                 StreamReader reader = new StreamReader(pListener);
 
                 string argument = reader.ReadLine();
-                string[] arguments = new string[2];
-                char[] characters = {' ', '"' };
-                arguments = argument.Split(characters, 2);
 
-                if(arguments.Length == 1)
+                if (argument.Contains("HTTP/1.0"))
                 {
-                    arguments[0] = arguments[0].Replace("\r\n", string.Empty);
+                    mCurrentProtocol = "HTTP/1.0";
                 }
-                else if(arguments.Length == 2)
+                else if (argument.Contains("HTTP/1.1"))
                 {
-                    arguments[0] = arguments[0].Replace("\r\n", string.Empty);
-                    arguments[1] = arguments[1].Replace("\r\n", string.Empty);
+                    mCurrentProtocol = "HTTP/1.1";
+                }
+                else if (argument.Contains("GET") || argument.Contains("PUT"))
+                {
+                    mCurrentProtocol = "HTTP/0.9";
+                }
+                else
+                {
+                    mCurrentProtocol = "whois";
                 }
 
-                // Take in the arguments, split them. Arguments 0 is the name, Arguments 1 is the location
+                if(mCurrentProtocol == "whois")
+                {
+                    string[] arguments = new string[2];
+                    char[] characters = { ' ', '"' };
+                    arguments = argument.Split(characters, 2);
 
-                if(arguments.Length == 1) //Request user location
-                {
-                    if(mPeople.ContainsKey(arguments[0]))
+                    if (arguments.Length == 1)
                     {
-                        writer.WriteLine(mPeople[arguments[0]]);
-                        writer.Flush();
+                        arguments[0] = arguments[0].Replace("\r\n", string.Empty);
                     }
-                    else
+                    else if (arguments.Length == 2)
                     {
-                        writer.WriteLine("ERROR: no entries found");
-                        writer.Flush();
+                        arguments[0] = arguments[0].Replace("\r\n", string.Empty);
+                        arguments[1] = arguments[1].Replace("\r\n", string.Empty);
                     }
-                }
-                else if(arguments.Length == 2) //Update location or add user
-                {
-                    if (mPeople.ContainsKey(arguments[0]))
+
+                    if (arguments.Length == 1)
                     {
-                        mPeople[arguments[0]] = arguments[1];
-                        writer.WriteLine("OK\r\n");
-                        writer.Flush();
+                        if (mPeople.ContainsKey(arguments[0]))
+                        {
+                            writer.WriteLine(mPeople[arguments[0]]);
+                            writer.Flush();
+                        }
+                        else
+                        {
+                            writer.WriteLine("ERROR: no entries found");
+                            writer.Flush();
+                        }
                     }
-                    else
+                    else if (arguments.Length == 2) 
                     {
-                        mPeople.Add(arguments[0], arguments[1]);
-                        writer.WriteLine("OK\r\n");
-                        writer.Flush();
+                        if (mPeople.ContainsKey(arguments[0]))
+                        {
+                            mPeople[arguments[0]] = arguments[1];
+                            writer.WriteLine("OK\r\n");
+                            writer.Flush();
+                        }
+                        else
+                        {
+                            mPeople.Add(arguments[0], arguments[1]);
+                            writer.WriteLine("OK\r\n");
+                            writer.Flush();
+                        }
                     }
                 }
 
