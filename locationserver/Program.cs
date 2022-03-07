@@ -55,7 +55,21 @@ namespace location_server
                 StreamWriter writer = new StreamWriter(pListener);
                 StreamReader reader = new StreamReader(pListener);
 
-                string argument = reader.ReadLine();
+                string argument = "";
+
+                while (argument != "")
+                {
+                    argument = reader.ReadLine();
+                }
+
+                try
+                {
+                    while (true)
+                    {
+                        argument += reader.ReadLine() + "\r\n";
+                    }
+                }
+                catch { }
 
                 if (argument.Contains("HTTP/1.0"))
                 {
@@ -121,7 +135,11 @@ namespace location_server
                 }
                 else if(mCurrentProtocol == "HTTP/0.9")
                 {
-
+                    string[] arguments = new string[2];
+                    char[] characters = { '\n', '\r' };
+                    arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
+                    mName = arguments[0].Remove(0, 5);
+                    mLocation = arguments[1]; //iif lebgth is  no 2
                 }
 
             }
