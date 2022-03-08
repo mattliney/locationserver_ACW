@@ -12,12 +12,12 @@ namespace location_server
     {
         static Dictionary<string, string> mPeople = new Dictionary<string, string>();
         static string mCurrentProtocol = "whois";
-        static string mName;
-        static string mLocation;
+        static string mName = null;
+        static string mLocation = null;
 
         static void Main(string[] args)
         {
-            mPeople.Add("Billy", "Somewhere");
+            mPeople.Add("638298", "is in the lab");
             runServer();
         }
 
@@ -52,6 +52,9 @@ namespace location_server
             Console.WriteLine("Connection Established");
             try
             {
+                mName = null;
+                mLocation = null;
+
                 StreamWriter writer = new StreamWriter(pListener);
                 StreamReader reader = new StreamReader(pListener);
 
@@ -94,17 +97,15 @@ namespace location_server
                     char[] characters = { ' ', '"' };
                     arguments = argument.Split(characters, 2);
 
-                    if (arguments.Length == 1)
-                    {
-                        mName = arguments[0].Replace("\r\n", string.Empty);
-                    }
-                    else if (arguments.Length == 2)
+                    mName = arguments[0].Replace("\r\n", string.Empty);
+
+                    if (arguments.Length == 2)
                     {
                         mName = arguments[0].Replace("\r\n", string.Empty);
                         mLocation = arguments[1].Replace("\r\n", string.Empty);
                     }
 
-                    if (arguments.Length == 1)
+                    if (mLocation == null)
                     {
                         if (mPeople.ContainsKey(mName))
                         {
@@ -117,7 +118,7 @@ namespace location_server
                             writer.Flush();
                         }
                     }
-                    else if (arguments.Length == 2) 
+                    else
                     {
                         if (mPeople.ContainsKey(mName))
                         {
@@ -137,11 +138,86 @@ namespace location_server
                 {
                     string[] arguments = new string[2];
                     char[] characters = { '\n', '\r' };
+
                     arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
                     mName = arguments[0].Remove(0, 5);
-                    mLocation = arguments[1]; //iif lebgth is  no 2
-                }
+                    if(arguments.Length == 2)
+                    {
+                        mLocation = arguments[1];
+                    }
 
+                    if (mLocation == null)
+                    {
+                        if (mPeople.ContainsKey(mName))
+                        {
+                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName] + "\r\n");
+                            writer.Flush();
+                        }
+                        else
+                        {
+                            writer.WriteLine("HTTP/0.9 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
+                        }
+                    }
+                    else
+                    {
+                        if (mPeople.ContainsKey(mName))
+                        {
+                            mPeople[mName] = mLocation;
+                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
+                        }
+                        else
+                        {
+                            mPeople.Add(mName, mLocation);
+                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
+                        }
+                    }
+                }
+                else if (mCurrentProtocol == "HTTP/1.0")
+                {
+                    string[] temp = new string[1];
+                    string[] arguments = new string[3];
+                    char[] characters = { '\n', '\r' };
+
+                    arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries); //check for post or get here please
+                    temp = arguments[0].Split(' ');
+                    mName = temp[1].Remove(0, 1);
+                    if (arguments.Length == 3)
+                    {
+                        mLocation = arguments[2];
+                    }
+
+                    if (mLocation == null)
+                    {
+                        if (mPeople.ContainsKey(mName))
+                        {
+                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName] + "\r\n");
+                            writer.Flush();
+                        }
+                        else
+                        {
+                            writer.WriteLine("HTTP/0.9 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
+                        }
+                    }
+                    else
+                    {
+                        if (mPeople.ContainsKey(mName))
+                        {
+                            mPeople[mName] = mLocation;
+                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
+                        }
+                        else
+                        {
+                            mPeople.Add(mName, mLocation);
+                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
