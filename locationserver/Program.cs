@@ -60,11 +60,6 @@ namespace location_server
 
                 string argument = "";
 
-                while (argument != "")
-                {
-                    argument = reader.ReadLine();
-                }
-
                 try
                 {
                     while (true)
@@ -181,11 +176,16 @@ namespace location_server
                     string[] arguments = new string[3];
                     char[] characters = { '\n', '\r' };
 
-                    arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries); //check for post or get here please
-                    temp = arguments[0].Split(' ');
-                    mName = temp[1].Remove(0, 1);
-                    if (arguments.Length == 3)
+                    arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
+                    if(arguments[0].StartsWith("GET /?"))
                     {
+                        temp = arguments[0].Split(' ');
+                        mName = temp[1].Remove(0, 2);
+                    }
+                    else
+                    {
+                        temp = arguments[0].Split(' ');
+                        mName = temp[1].Remove(0, 1);
                         mLocation = arguments[2];
                     }
 
@@ -193,12 +193,12 @@ namespace location_server
                     {
                         if (mPeople.ContainsKey(mName))
                         {
-                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName] + "\r\n");
+                            writer.WriteLine("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName]);
                             writer.Flush();
                         }
                         else
                         {
-                            writer.WriteLine("HTTP/0.9 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.WriteLine("HTTP/1.0 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
                             writer.Flush();
                         }
                     }
@@ -207,13 +207,13 @@ namespace location_server
                         if (mPeople.ContainsKey(mName))
                         {
                             mPeople[mName] = mLocation;
-                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.WriteLine("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n");
                             writer.Flush();
                         }
                         else
                         {
                             mPeople.Add(mName, mLocation);
-                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.WriteLine("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n");
                             writer.Flush();
                         }
                     }
