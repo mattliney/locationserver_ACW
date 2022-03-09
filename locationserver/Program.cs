@@ -218,6 +218,29 @@ namespace location_server
                         }
                     }
                 }
+                else if (mCurrentProtocol == "HTTP/1.1")
+                {
+                    //split args
+
+                    if (mLocation == null)
+                    {
+                        if (mPeople.ContainsKey(mName))
+                        {
+                        }
+                        else
+                        {
+                        }
+                    }
+                    else
+                    {
+                        if (mPeople.ContainsKey(mName))
+                        {
+                        }
+                        else
+                        {
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
