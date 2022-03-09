@@ -32,6 +32,7 @@ namespace location_server
                 listener.Start();
                 while (true)
                 {
+                    Console.WriteLine("Waiting for Connection...");
                     connection = listener.AcceptSocket();
                     socketStream = new NetworkStream(connection);
                     socketStream.ReadTimeout = 1000;
