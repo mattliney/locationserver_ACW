@@ -221,24 +221,49 @@ namespace location_server
                 }
                 else if (mCurrentProtocol == "HTTP/1.1")
                 {
-                    //split args
+                    string[] temp = new string[1];
+                    string[] arguments = new string[3];
+                    char[] characters = { '\n', '\r' };
+
+                    arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
+                    if (arguments[0].StartsWith("GET /?"))
+                    {
+                        temp = arguments[0].Split(' ');
+                        mName = temp[1].Remove(0, 7);
+                    }
+                    else
+                    {
+                        temp = arguments[3].Split('&');
+                        mName = temp[0].Remove(0, 5);
+                        mLocation = temp[1].Remove(0, 9);
+                    }
 
                     if (mLocation == null)
                     {
                         if (mPeople.ContainsKey(mName))
                         {
+                            writer.WriteLine("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName]);
+                            writer.Flush();
                         }
                         else
                         {
+                            writer.WriteLine("HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
                         }
                     }
                     else
                     {
                         if (mPeople.ContainsKey(mName))
                         {
+                            mPeople[mName] = mLocation;
+                            writer.WriteLine("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
                         }
                         else
                         {
+                            mPeople.Add(mName, mLocation);
+                            writer.WriteLine("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                            writer.Flush();
                         }
                     }
                 }
