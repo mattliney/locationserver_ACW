@@ -55,6 +55,7 @@ namespace location_server
             {
                 mName = null;
                 mLocation = null;
+                mCurrentProtocol = "whois";
 
                 StreamWriter writer = new StreamWriter(pListener);
                 StreamReader reader = new StreamReader(pListener);
@@ -78,7 +79,7 @@ namespace location_server
                 {
                     mCurrentProtocol = "HTTP/1.1";
                 }
-                else if (argument.Contains("GET") || argument.Contains("PUT"))
+                else if (argument.Contains("GET /") || argument.Contains("PUT /"))
                 {
                     mCurrentProtocol = "HTTP/0.9";
                 }
