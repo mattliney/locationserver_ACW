@@ -63,9 +63,9 @@ namespace location_server
 
                 try
                 {
-                    while (true)
+                    while(reader.Peek() != -1)
                     {
-                        argument += reader.ReadLine() + "\r\n";
+                        argument += (char)reader.Read();
                     }
                 }
                 catch { }
