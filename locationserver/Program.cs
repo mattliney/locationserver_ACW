@@ -21,7 +21,6 @@ namespace location_server
             runServer();
         }
 
-
         static void runServer()
         {
             TcpListener listener;
