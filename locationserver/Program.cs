@@ -21,6 +21,7 @@ namespace location_server
             runServer();
         }
 
+
         static void runServer()
         {
             TcpListener listener;
@@ -71,15 +72,21 @@ namespace location_server
                 }
                 catch { }
 
-                if (argument.Contains("HTTP/1.0"))
+                //starts with get space / must be .9
+                //use ends with
+
+                char[] chars = { '\r', '\n' };
+                string[] split = argument.Split(chars, 2);
+
+                if (split[0].EndsWith("HTTP/1.0"))
                 {
                     mCurrentProtocol = "HTTP/1.0";
                 }
-                else if (argument.Contains("HTTP/1.1"))
+                else if (split[0].EndsWith("HTTP/1.1"))
                 {
                     mCurrentProtocol = "HTTP/1.1";
                 }
-                else if (argument.Contains("GET /") || argument.Contains("PUT /"))
+                else if (split[0].StartsWith("GET /") || split[0].StartsWith("PUT /"))
                 {
                     mCurrentProtocol = "HTTP/0.9";
                 }
