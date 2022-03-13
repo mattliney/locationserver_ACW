@@ -56,6 +56,7 @@ namespace location_server
                 mName = null;
                 mLocation = null;
                 mCurrentProtocol = "whois";
+                int lineCount = 0;
 
                 StreamWriter writer = new StreamWriter(pListener);
                 StreamReader reader = new StreamReader(pListener);
@@ -71,11 +72,11 @@ namespace location_server
                 }
                 catch { }
 
-                //starts with get space / must be .9
-                //use ends with
 
                 char[] chars = { '\r', '\n' };
-                string[] split = argument.Split(chars, 2);
+                string[] split = argument.Split(chars, StringSplitOptions.RemoveEmptyEntries);
+                lineCount = split.Length;
+
 
                 if (split[0].EndsWith("HTTP/1.0"))
                 {
@@ -85,7 +86,7 @@ namespace location_server
                 {
                     mCurrentProtocol = "HTTP/1.1";
                 }
-                else if (split[0].StartsWith("GET /") || split[0].StartsWith("PUT /"))
+                else if (split[0].StartsWith("GET /") && lineCount == 1|| split[0].StartsWith("PUT /") && lineCount == 2)
                 {
                     mCurrentProtocol = "HTTP/0.9";
                 }
