@@ -48,7 +48,7 @@ namespace location_server
             }
         }
 
-        static void WhoIs(StreamWriter pWriter)
+        static void WhoIsResponse(StreamWriter pWriter)
         {
             if (mLocation == null)
             {
@@ -80,7 +80,75 @@ namespace location_server
             }
         }
 
-        static void HTTP(StreamWriter pWriter)
+        static void SplitArgs(string pArgument)
+        {
+            if(mCurrentProtocol == "whois")
+            {
+                string[] arguments = new string[2];
+                char[] characters = { ' ', '"' };
+                arguments = pArgument.Split(characters, 2);
+
+                mName = arguments[0].Replace("\r\n", string.Empty);
+
+                if (arguments.Length == 2)
+                {
+                    mName = arguments[0].Replace("\r\n", string.Empty);
+                    mLocation = arguments[1].Replace("\r\n", string.Empty);
+                }
+            }
+            else if(mCurrentProtocol == "HTTP/0.9")
+            {
+                string[] arguments = new string[2];
+                char[] characters = { '\n', '\r' };
+
+                arguments = pArgument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
+                mName = arguments[0].Remove(0, 5);
+                if (arguments.Length == 2)
+                {
+                    mLocation = arguments[1];
+                }
+            }
+            else if(mCurrentProtocol == "HTTP/1.0")
+            {
+                string[] temp = new string[1];
+                string[] arguments = new string[3];
+                char[] characters = { '\n', '\r' };
+
+                arguments = pArgument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
+                if (arguments[0].StartsWith("GET /?"))
+                {
+                    temp = arguments[0].Split(' ');
+                    mName = temp[1].Remove(0, 2);
+                }
+                else
+                {
+                    temp = arguments[0].Split(' ');
+                    mName = temp[1].Remove(0, 1);
+                    mLocation = arguments[2];
+                }
+            }
+            else if(mCurrentProtocol == "HTTP/1.1")
+            {
+                string[] temp = new string[1];
+                string[] arguments = new string[3];
+                char[] characters = { '\n', '\r' };
+
+                arguments = pArgument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
+                if (arguments[0].StartsWith("GET /?"))
+                {
+                    temp = arguments[0].Split(' ');
+                    mName = temp[1].Remove(0, 7);
+                }
+                else
+                {
+                    temp = arguments[3].Split('&');
+                    mName = temp[0].Remove(0, 5);
+                    mLocation = temp[1].Remove(0, 9);
+                }
+            }
+        }
+
+        static void HttpResponse(StreamWriter pWriter)
         {
             if (mLocation == null)
             {
@@ -136,11 +204,9 @@ namespace location_server
                 }
                 catch { }
 
-
                 char[] chars = { '\r', '\n' };
                 string[] split = argument.Split(chars, StringSplitOptions.RemoveEmptyEntries);
                 lineCount = split.Length;
-
 
                 if (split[0].EndsWith("HTTP/1.0"))
                 {
@@ -159,77 +225,24 @@ namespace location_server
                     mCurrentProtocol = "whois";
                 }
 
-                if(mCurrentProtocol == "whois")
+                switch(mCurrentProtocol)
                 {
-                    string[] arguments = new string[2];
-                    char[] characters = { ' ', '"' };
-                    arguments = argument.Split(characters, 2);
-
-                    mName = arguments[0].Replace("\r\n", string.Empty);
-
-                    if (arguments.Length == 2)
-                    {
-                        mName = arguments[0].Replace("\r\n", string.Empty);
-                        mLocation = arguments[1].Replace("\r\n", string.Empty);
-                    }
-
-                    WhoIs(writer);
-                }
-                else if(mCurrentProtocol == "HTTP/0.9")
-                {
-                    string[] arguments = new string[2];
-                    char[] characters = { '\n', '\r' };
-
-                    arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
-                    mName = arguments[0].Remove(0, 5);
-                    if(arguments.Length == 2)
-                    {
-                        mLocation = arguments[1];
-                    }
-
-                    HTTP(writer);
-                }
-                else if (mCurrentProtocol == "HTTP/1.0")
-                {
-                    string[] temp = new string[1];
-                    string[] arguments = new string[3];
-                    char[] characters = { '\n', '\r' };
-
-                    arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
-                    if(arguments[0].StartsWith("GET /?"))
-                    {
-                        temp = arguments[0].Split(' ');
-                        mName = temp[1].Remove(0, 2);
-                    }
-                    else
-                    {
-                        temp = arguments[0].Split(' ');
-                        mName = temp[1].Remove(0, 1);
-                        mLocation = arguments[2];
-                    }
-
-                    HTTP(writer);
-                }
-                else if (mCurrentProtocol == "HTTP/1.1")
-                {
-                    string[] temp = new string[1];
-                    string[] arguments = new string[3];
-                    char[] characters = { '\n', '\r' };
-
-                    arguments = argument.Split(characters, StringSplitOptions.RemoveEmptyEntries);
-                    if (arguments[0].StartsWith("GET /?"))
-                    {
-                        temp = arguments[0].Split(' ');
-                        mName = temp[1].Remove(0, 7);
-                    }
-                    else
-                    {
-                        temp = arguments[3].Split('&');
-                        mName = temp[0].Remove(0, 5);
-                        mLocation = temp[1].Remove(0, 9);
-                    }
-
-                    HTTP(writer);
+                    case "whois":
+                        SplitArgs(argument);
+                        WhoIsResponse(writer);
+                        break;
+                    case "HTTP/0.9":
+                        SplitArgs(argument);
+                        HttpResponse(writer);
+                        break;
+                    case "HTTP/1.0":
+                        SplitArgs(argument);
+                        HttpResponse(writer);
+                        break;
+                    case "HTTP/1.1":
+                        SplitArgs(argument);
+                        HttpResponse(writer);
+                        break;
                 }
             }
             catch (Exception e)
