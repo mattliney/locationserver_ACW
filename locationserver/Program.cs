@@ -48,6 +48,70 @@ namespace location_server
             }
         }
 
+        static void WhoIs(StreamWriter pWriter)
+        {
+            if (mLocation == null)
+            {
+                if (mPeople.ContainsKey(mName))
+                {
+                    pWriter.WriteLine(mPeople[mName]);
+                    pWriter.Flush();
+                }
+                else
+                {
+                    pWriter.WriteLine("ERROR: no entries found");
+                    pWriter.Flush();
+                }
+            }
+            else
+            {
+                if (mPeople.ContainsKey(mName))
+                {
+                    mPeople[mName] = mLocation;
+                    pWriter.WriteLine("OK\r\n");
+                    pWriter.Flush();
+                }
+                else
+                {
+                    mPeople.Add(mName, mLocation);
+                    pWriter.WriteLine("OK\r\n");
+                    pWriter.Flush();
+                }
+            }
+        }
+
+        static void HTTP(StreamWriter pWriter)
+        {
+            if (mLocation == null)
+            {
+                if (mPeople.ContainsKey(mName))
+                {
+                    pWriter.WriteLine(mCurrentProtocol + " 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName] + "\r\n");
+                    pWriter.Flush();
+                }
+                else
+                {
+                    pWriter.WriteLine(mCurrentProtocol + " 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
+                    pWriter.Flush();
+                }
+            }
+            else
+            {
+                if (mPeople.ContainsKey(mName))
+                {
+                    mPeople[mName] = mLocation;
+                    pWriter.WriteLine(mCurrentProtocol + "  200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                    pWriter.Flush();
+                }
+                else
+                {
+                    mPeople.Add(mName, mLocation);
+                    pWriter.WriteLine(mCurrentProtocol + " 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                    pWriter.Flush();
+                }
+            }
+        }
+
         static void doRequest(NetworkStream pListener)
         {
             Console.WriteLine("Connection Established");
@@ -109,34 +173,7 @@ namespace location_server
                         mLocation = arguments[1].Replace("\r\n", string.Empty);
                     }
 
-                    if (mLocation == null)
-                    {
-                        if (mPeople.ContainsKey(mName))
-                        {
-                            writer.WriteLine(mPeople[mName]);
-                            writer.Flush();
-                        }
-                        else
-                        {
-                            writer.WriteLine("ERROR: no entries found");
-                            writer.Flush();
-                        }
-                    }
-                    else
-                    {
-                        if (mPeople.ContainsKey(mName))
-                        {
-                            mPeople[mName] = mLocation;
-                            writer.WriteLine("OK\r\n");
-                            writer.Flush();
-                        }
-                        else
-                        {
-                            mPeople.Add(mName, mLocation);
-                            writer.WriteLine("OK\r\n");
-                            writer.Flush();
-                        }
-                    }
+                    WhoIs(writer);
                 }
                 else if(mCurrentProtocol == "HTTP/0.9")
                 {
@@ -150,34 +187,7 @@ namespace location_server
                         mLocation = arguments[1];
                     }
 
-                    if (mLocation == null)
-                    {
-                        if (mPeople.ContainsKey(mName))
-                        {
-                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName] + "\r\n");
-                            writer.Flush();
-                        }
-                        else
-                        {
-                            writer.WriteLine("HTTP/0.9 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                    }
-                    else
-                    {
-                        if (mPeople.ContainsKey(mName))
-                        {
-                            mPeople[mName] = mLocation;
-                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                        else
-                        {
-                            mPeople.Add(mName, mLocation);
-                            writer.WriteLine("HTTP/0.9 200 OK\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                    }
+                    HTTP(writer);
                 }
                 else if (mCurrentProtocol == "HTTP/1.0")
                 {
@@ -198,34 +208,7 @@ namespace location_server
                         mLocation = arguments[2];
                     }
 
-                    if (mLocation == null)
-                    {
-                        if (mPeople.ContainsKey(mName))
-                        {
-                            writer.WriteLine("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName]);
-                            writer.Flush();
-                        }
-                        else
-                        {
-                            writer.WriteLine("HTTP/1.0 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                    }
-                    else
-                    {
-                        if (mPeople.ContainsKey(mName))
-                        {
-                            mPeople[mName] = mLocation;
-                            writer.WriteLine("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                        else
-                        {
-                            mPeople.Add(mName, mLocation);
-                            writer.WriteLine("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                    }
+                    HTTP(writer);
                 }
                 else if (mCurrentProtocol == "HTTP/1.1")
                 {
@@ -246,34 +229,7 @@ namespace location_server
                         mLocation = temp[1].Remove(0, 9);
                     }
 
-                    if (mLocation == null)
-                    {
-                        if (mPeople.ContainsKey(mName))
-                        {
-                            writer.WriteLine("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName]);
-                            writer.Flush();
-                        }
-                        else
-                        {
-                            writer.WriteLine("HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                    }
-                    else
-                    {
-                        if (mPeople.ContainsKey(mName))
-                        {
-                            mPeople[mName] = mLocation;
-                            writer.WriteLine("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                        else
-                        {
-                            mPeople.Add(mName, mLocation);
-                            writer.WriteLine("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n");
-                            writer.Flush();
-                        }
-                    }
+                    HTTP(writer);
                 }
             }
             catch (Exception e)
