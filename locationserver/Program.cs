@@ -14,14 +14,37 @@ namespace location_server
         static string mCurrentProtocol = "whois";
         static string mName = null;
         static string mLocation = null;
+        static bool mDebug = false;
+        static string mMessageSent = null;
+        static string mMessageReceived = null;
 
         static void Main(string[] args)
         {
             mPeople.Add("638298", "is in the lab");
-            runServer();
+            CheckCommandLineArgs(args);
+            RunServer();
         }
 
-        static void runServer()
+        static void CheckCommandLineArgs(string[] pArgs)
+        {
+            foreach(string str in pArgs)
+            {
+                if(str == "-d") //debug
+                {
+                    mDebug = true;
+                }
+                else if(str == "t") //timeout
+                {
+
+                }
+                else if(str == "-l") //log 
+                {
+
+                }
+            }
+        }
+
+        static void RunServer()
         {
             TcpListener listener;
             Socket connection;
@@ -34,10 +57,11 @@ namespace location_server
                 {
                     Console.WriteLine("Waiting for Connection...");
                     connection = listener.AcceptSocket();
+                    Console.WriteLine("Connection Received From: " + connection.RemoteEndPoint);
                     socketStream = new NetworkStream(connection);
                     socketStream.ReadTimeout = 1000;
                     socketStream.WriteTimeout = 1000;
-                    doRequest(socketStream);
+                    DoRequest(socketStream);
                     socketStream.Close();
                     connection.Close();
                 }
@@ -55,11 +79,13 @@ namespace location_server
                 if (mPeople.ContainsKey(mName))
                 {
                     pWriter.WriteLine(mPeople[mName]);
+                    mMessageSent = mPeople[mName];
                     pWriter.Flush();
                 }
                 else
                 {
                     pWriter.WriteLine("ERROR: no entries found");
+                    mMessageSent = "ERROR: no entries found";
                     pWriter.Flush();
                 }
             }
@@ -69,12 +95,14 @@ namespace location_server
                 {
                     mPeople[mName] = mLocation;
                     pWriter.WriteLine("OK\r\n");
+                    mMessageSent = "OK";
                     pWriter.Flush();
                 }
                 else
                 {
                     mPeople.Add(mName, mLocation);
                     pWriter.WriteLine("OK\r\n");
+                    mMessageSent = "OK";
                     pWriter.Flush();
                 }
             }
@@ -146,6 +174,8 @@ namespace location_server
                     mLocation = temp[1].Remove(0, 9);
                 }
             }
+
+            mMessageReceived = mName + " " + mLocation;
         }
 
         static void HttpResponse(StreamWriter pWriter)
@@ -180,13 +210,20 @@ namespace location_server
             }
         }
 
-        static void doRequest(NetworkStream pListener)
+        static void DebugOutput()
         {
-            Console.WriteLine("Connection Established");
+            Console.WriteLine("Message Received: " + mMessageReceived);
+            Console.WriteLine("Message Sent: " + mMessageSent);
+        }
+
+        static void DoRequest(NetworkStream pListener)
+        {
             try
             {
                 mName = null;
                 mLocation = null;
+                mMessageReceived = null;
+                mMessageSent = null;
                 mCurrentProtocol = "whois";
                 int lineCount = 0;
 
@@ -243,6 +280,11 @@ namespace location_server
                         SplitArgs(argument);
                         HttpResponse(writer);
                         break;
+                }
+
+                if(mDebug)
+                {
+                    DebugOutput();
                 }
             }
             catch (Exception e)
