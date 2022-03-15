@@ -23,6 +23,7 @@ namespace location_server
 
         //Log Variables
         static string mLogFilePath = null;
+        static string mRemoteEndPoint;
 
         //Dictionary Saving Variables
         static Dictionary<string, string> mPeople = new Dictionary<string, string>();
@@ -31,7 +32,6 @@ namespace location_server
 
         static void Main(string[] args)
         {
-            mPeople.Add("638298", "is in the lab");
             CheckCommandLineArgs(args);
             if (mSaveDatabase) { LoadDictionary(); }
             RunServer();
@@ -74,11 +74,13 @@ namespace location_server
                 {
                     if (mDebug) { Console.WriteLine("Waiting for Connection..."); }
                     connection = listener.AcceptSocket();
-                    if (mDebug) { Console.WriteLine("Connection Received From: " + connection.RemoteEndPoint); }
+                    mRemoteEndPoint = connection.RemoteEndPoint.ToString();
+                    if (mDebug) { Console.WriteLine("Connection Received From: " + mRemoteEndPoint); }
                     socketStream = new NetworkStream(connection);
                     socketStream.ReadTimeout = mTimeout;
                     socketStream.WriteTimeout = mTimeout;
                     DoRequest(socketStream);
+                    SaveLog();
                     socketStream.Close();
                     connection.Close();
                     if (mSaveDatabase) { SaveDictionary(); }
@@ -346,6 +348,18 @@ namespace location_server
                 {
                     writer.WriteLine(kvp.Key + " " + kvp.Value);
                 }
+
+                writer.Close();
+            }
+        }
+
+        static void SaveLog()
+        {
+            if (mLogFilePath != null)
+            {
+                StreamWriter writer = new StreamWriter(mLogFilePath, true);
+
+                writer.WriteLine(mRemoteEndPoint + " -- " + DateTime.Now + " -- " + mMessageReceived + " -- " + mMessageSent);
 
                 writer.Close();
             }
