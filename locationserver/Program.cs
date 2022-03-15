@@ -10,36 +10,53 @@ namespace location_server
 {
     class Program
     {
-        static Dictionary<string, string> mPeople = new Dictionary<string, string>();
+        //Normal Variables
         static string mCurrentProtocol = "whois";
         static string mName = null;
         static string mLocation = null;
+        static int mTimeout = 1000;
+
+        //Debug Variables
         static bool mDebug = false;
         static string mMessageSent = null;
         static string mMessageReceived = null;
+
+        //Log Variables
+        static string mLogFilePath = null;
+
+        //Dictionary Saving Variables
+        static Dictionary<string, string> mPeople = new Dictionary<string, string>();
+        static string mDatabaseFilePath = null;
+        static bool mSaveDatabase = false;
 
         static void Main(string[] args)
         {
             mPeople.Add("638298", "is in the lab");
             CheckCommandLineArgs(args);
+            if (mSaveDatabase) { LoadDictionary(); }
             RunServer();
         }
 
         static void CheckCommandLineArgs(string[] pArgs)
         {
-            foreach(string str in pArgs)
+            for(int i = 0; i < pArgs.Length; i++)
             {
-                if(str == "-d") //debug
+                if(pArgs[i] == "-d")
                 {
                     mDebug = true;
                 }
-                else if(str == "t") //timeout
+                else if (pArgs[i] == "-t")
                 {
-
+                    mTimeout = int.Parse(pArgs[++i]);
                 }
-                else if(str == "-l") //log 
+                else if (pArgs[i] == "-l")
                 {
-
+                    mLogFilePath = pArgs[++i];
+                }
+                else if(pArgs[i] == "-f")
+                {
+                    mDatabaseFilePath = pArgs[++i];
+                    mSaveDatabase = true;
                 }
             }
         }
@@ -55,15 +72,16 @@ namespace location_server
                 listener.Start();
                 while (true)
                 {
-                    Console.WriteLine("Waiting for Connection...");
+                    if (mDebug) { Console.WriteLine("Waiting for Connection..."); }
                     connection = listener.AcceptSocket();
-                    Console.WriteLine("Connection Received From: " + connection.RemoteEndPoint);
+                    if (mDebug) { Console.WriteLine("Connection Received From: " + connection.RemoteEndPoint); }
                     socketStream = new NetworkStream(connection);
-                    socketStream.ReadTimeout = 1000;
-                    socketStream.WriteTimeout = 1000;
+                    socketStream.ReadTimeout = mTimeout;
+                    socketStream.WriteTimeout = mTimeout;
                     DoRequest(socketStream);
                     socketStream.Close();
                     connection.Close();
+                    if (mSaveDatabase) { SaveDictionary(); }
                 }
             }
             catch (Exception e)
@@ -185,11 +203,13 @@ namespace location_server
                 if (mPeople.ContainsKey(mName))
                 {
                     pWriter.WriteLine(mCurrentProtocol + " 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName] + "\r\n");
+                    mMessageSent = mCurrentProtocol + " 200 OK\r\nContent-Type: text/plain\r\n\r\n" + mPeople[mName] + "\r\n";
                     pWriter.Flush();
                 }
                 else
                 {
                     pWriter.WriteLine(mCurrentProtocol + " 404 Not Found\r\nContent-Type: text/plain\r\n\r\n");
+                    mMessageSent = mCurrentProtocol + " 404 Not Found\r\nContent-Type: text/plain\r\n\r\n";
                     pWriter.Flush();
                 }
             }
@@ -199,12 +219,14 @@ namespace location_server
                 {
                     mPeople[mName] = mLocation;
                     pWriter.WriteLine(mCurrentProtocol + "  200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                    mMessageSent = mCurrentProtocol + "  200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     pWriter.Flush();
                 }
                 else
                 {
                     mPeople.Add(mName, mLocation);
                     pWriter.WriteLine(mCurrentProtocol + " 200 OK\r\nContent-Type: text/plain\r\n\r\n");
+                    mMessageSent = mCurrentProtocol + "  200 OK\r\nContent-Type: text/plain\r\n\r\n";
                     pWriter.Flush();
                 }
             }
@@ -282,14 +304,50 @@ namespace location_server
                         break;
                 }
 
-                if(mDebug)
-                {
-                    DebugOutput();
-                }
+                if (mDebug) { DebugOutput(); }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+            }
+        }
+    
+        static void LoadDictionary()
+        {
+            if(mDatabaseFilePath != null)
+            {
+                try
+                {
+                    StreamReader reader = new StreamReader(mDatabaseFilePath);
+                    while (true)
+                    {
+                        string line = reader.ReadLine();
+                        if(line == null || line == "")
+                        {
+                            break;
+                        }
+                        char[] c = { ' ' };
+                        string[] split = line.Split(c,2);
+                        mPeople.Add(split[0], split[1]);
+                    }
+                    reader.Close();
+                }
+                catch { }
+            }
+        }
+
+        static void SaveDictionary()
+        {
+            if (mDatabaseFilePath != null)
+            {
+                StreamWriter writer = new StreamWriter(mDatabaseFilePath);
+
+                foreach(KeyValuePair<string,string> kvp in mPeople)
+                {
+                    writer.WriteLine(kvp.Key + " " + kvp.Value);
+                }
+
+                writer.Close();
             }
         }
     }
