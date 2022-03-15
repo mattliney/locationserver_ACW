@@ -80,10 +80,10 @@ namespace location_server
                     socketStream.ReadTimeout = mTimeout;
                     socketStream.WriteTimeout = mTimeout;
                     DoRequest(socketStream);
-                    SaveLog();
                     socketStream.Close();
                     connection.Close();
                     if (mSaveDatabase) { SaveDictionary(); }
+                    SaveLog();
                 }
             }
             catch (Exception e)
