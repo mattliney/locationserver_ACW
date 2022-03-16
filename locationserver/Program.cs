@@ -30,6 +30,10 @@ namespace location_server
         static string mDatabaseFilePath = null;
         static bool mSaveDatabase = false;
 
+        /// <summary>
+        /// Checks for -w in the command line. If it is not found, the server runs on the console. If not, the user interface opens.
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             CheckCommandLineArgs(args);
@@ -37,6 +41,10 @@ namespace location_server
             RunServer();
         }
 
+        /// <summary>
+        /// Checks the command line for debug mode, log file path, database file path, and timeout.
+        /// </summary>
+        /// <param name="pArgs"></param>
         static void CheckCommandLineArgs(string[] pArgs)
         {
             for(int i = 0; i < pArgs.Length; i++)
@@ -61,6 +69,9 @@ namespace location_server
             }
         }
 
+        /// <summary>
+        /// Contains the loop that listens for a connection until an error occurs.
+        /// </summary>
         static void RunServer()
         {
             TcpListener listener;
@@ -92,6 +103,10 @@ namespace location_server
             }
         }
 
+        /// <summary>
+        /// Responds to the whois protocol. Searches the dictionary or updates the dictionary. If the user is not found, return an error message.
+        /// </summary>
+        /// <param name="pWriter"></param>
         static void WhoIsResponse(StreamWriter pWriter)
         {
             if (mLocation == null)
@@ -128,6 +143,10 @@ namespace location_server
             }
         }
 
+        /// <summary>
+        /// Divides the arguments sent by the client based on the protocol.
+        /// </summary>
+        /// <param name="pArgument"></param>
         static void SplitArgs(string pArgument)
         {
             if(mCurrentProtocol == "whois")
@@ -198,6 +217,10 @@ namespace location_server
             mMessageReceived = mName + " " + mLocation;
         }
 
+        /// <summary>
+        /// Responds to ant HTTP protocol. Searches the dictionary or updates the dictionary. Responds if the name is not found and sends an error message.
+        /// </summary>
+        /// <param name="pWriter"></param>
         static void HttpResponse(StreamWriter pWriter)
         {
             if (mLocation == null)
@@ -234,12 +257,19 @@ namespace location_server
             }
         }
 
+        /// <summary>
+        /// Outputs the message received from the client and the message sent by the server if debug mode is enabled.
+        /// </summary>
         static void DebugOutput()
         {
             Console.WriteLine("Message Received: " + mMessageReceived);
             Console.WriteLine("Message Sent: " + mMessageSent);
         }
 
+        /// <summary>
+        /// Reads in the argument from the client and decides which protocol it has been sent in. Switches on the protocol and then calls the appropriate method to send a message back. 
+        /// </summary>
+        /// <param name="pListener"></param>
         static void DoRequest(NetworkStream pListener)
         {
             try
@@ -313,7 +343,10 @@ namespace location_server
                 Console.WriteLine(e.ToString());
             }
         }
-    
+
+        /// <summary>
+        /// Loads the dictionary from the specified file path. Will not load if the file has not been created yet
+        /// </summary>
         static void LoadDictionary()
         {
             if(mDatabaseFilePath != null)
@@ -338,6 +371,9 @@ namespace location_server
             }
         }
 
+        /// <summary>
+        /// Saves the dictionary to the specified file. Creates the file on the specified path if the file does not already exist.
+        /// </summary>
         static void SaveDictionary()
         {
             if (mDatabaseFilePath != null)
@@ -353,6 +389,9 @@ namespace location_server
             }
         }
 
+        /// <summary>
+        /// Saves the log of the server to the specified path.
+        /// </summary>
         static void SaveLog()
         {
             if (mLogFilePath != null)
